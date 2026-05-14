@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Inmobiliaria Fram</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-msal-browser/2.38.0/msal-browser.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c27;
+    --border: #2a2a3a;
+    --accent: #6c63ff;
+    --accent2: #ff6b6b;
+    --accent3: #43e97b;
+    --text: #f0f0f8;
+    --text2: #8888aa;
+    --text3: #555570;
+    --gold: #f5c542;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px; min-height: 100vh; background: var(--surface);
+    border-right: 1px solid var(--border); display: flex; flex-direction: column;
+    padding: 0; flex-shrink: 0;
+  }
+  .logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; color: var(--text); letter-spacing: -0.3px; line-height: 1.2; }
+  .logo-sub { font-size: 11px; color: var(--accent); margin-top: 3px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+
+  .nav { padding: 16px 10px; flex: 1; }
+  .nav-label { font-size: 10px; color: var(--text3); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; padding: 0 10px; margin-bottom: 8px; margin-top: 16px; }
+  .nav-label:first-child { margin-top: 0; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 8px; cursor: pointer;
+    font-size: 13px; color: var(--text2); font-weight: 400;
+    transition: all 0.15s; margin-bottom: 2px;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: linear-gradient(135deg, rgba(108,99,255,0.2), rgba(108,99,255,0.05)); color: var(--accent); font-weight: 500; }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .user-box {
+    padding: 14px 16px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #a78bfa); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+  .user-name { font-size: 12px; font-weight: 500; }
+  .user-role { font-size: 10px; color: var(--text3); }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar {
+    height: 56px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; background: var(--surface); flex-shrink: 0;
+  }
+  .topbar-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .metric-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+    transition: border-color 0.2s;
+  }
+  .metric-card:hover { border-color: var(--accent); }
+  .metric-label { font-size: 11px; color: var(--text3); font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+  .metric-val { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; }
+  .metric-val.green { color: var(--accent3); }
+  .metric-val.purple { color: var(--accent); }
+  .metric-val.red { color: var(--accent2); }
+  .metric-val.gold { color: var(--gold); }
+
+  /* TABLE */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .table-head { display: grid; padding: 12px 16px; background: var(--surface2); font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid var(--border); }
+  .table-row { display: grid; padding: 12px 16px; border-bottom: 1px solid var(--border); align-items: center; font-size: 13px; transition: background 0.15s; cursor: pointer; }
+  .table-row:last-child { border-bottom: none; }
+  .table-row:hover { background: var(--surface2); }
+
+  /* BADGE */
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 600; letter-spacing: 0.3px; }
+  .badge-lead { background: rgba(108,99,255,0.15); color: var(--accent); border: 1px solid rgba(108,99,255,0.3); }
+  .badge-cliente { background: rgba(67,233,123,0.12); color: var(--accent3); border: 1px solid rgba(67,233,123,0.3); }
+  .badge-cerrado { background: rgba(255,107,107,0.12); color: var(--accent2); border: 1px solid rgba(255,107,107,0.3); }
+  .badge-enviado { background: rgba(245,197,66,0.12); color: var(--gold); border: 1px solid rgba(245,197,66,0.3); }
+  .badge-abierto { background: rgba(67,233,123,0.12); color: var(--accent3); border: 1px solid rgba(67,233,123,0.3); }
+  .badge-respondio { background: rgba(108,99,255,0.15); color: var(--accent); border: 1px solid rgba(108,99,255,0.3); }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text); transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+  .btn-primary:hover { background: #5a52e0; border-color: #5a52e0; color: white; }
+  .btn-sm { padding: 5px 10px; font-size: 11px; border-radius: 6px; }
+  .btn-danger { background: rgba(255,107,107,0.1); border-color: var(--accent2); color: var(--accent2); }
+
+  /* FORMS */
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 11px; color: var(--text2); font-weight: 500; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 12px; font-size: 13px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; transition: border-color 0.15s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .form-textarea { resize: vertical; min-height: 120px; }
+  .form-select option { background: var(--surface2); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* AUTH */
+  .auth-screen {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center; z-index: 100;
+  }
+  .auth-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 40px; width: 380px; text-align: center;
+  }
+  .auth-logo { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .auth-sub { font-size: 12px; color: var(--text3); margin-bottom: 32px; letter-spacing: 1px; text-transform: uppercase; }
+  .auth-desc { font-size: 13px; color: var(--text2); margin-bottom: 28px; line-height: 1.6; }
+  .ms-btn {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    width: 100%; padding: 14px; background: #0078d4; border: none; border-radius: 10px;
+    color: white; font-size: 14px; font-weight: 600; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: background 0.15s;
+  }
+  .ms-btn:hover { background: #006bb5; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center; z-index: 200; display: none;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 480px; max-width: 95vw; }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px;
+    font-size: 13px; z-index: 999; transform: translateY(100px); opacity: 0;
+    transition: all 0.3s; display: flex; align-items: center; gap: 10px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--accent3); }
+  .toast.error { border-color: var(--accent2); }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 48px; color: var(--text3); }
+  .empty svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
+
+  /* MISC */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .section-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+  .chip { font-size: 10px; background: rgba(108,99,255,0.15); color: var(--accent); padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+
+  .contact-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+  .dot-green { background: var(--accent3); }
+  .dot-purple { background: var(--accent); }
+  .dot-red { background: var(--accent2); }
+  
+  .import-zone {
+    border: 2px dashed var(--border); border-radius: 12px; padding: 40px;
+    text-align: center; cursor: pointer; transition: border-color 0.2s;
+    margin-bottom: 16px;
+  }
+  .import-zone:hover { border-color: var(--accent); }
+  .import-zone svg { width: 36px; height: 36px; color: var(--text3); margin-bottom: 12px; }
+
+  .progress-bar { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), #a78bfa); transition: width 0.5s; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .tag-info { font-size: 11px; color: var(--text3); background: var(--surface2); border-radius: 6px; padding: 10px 12px; border-left: 3px solid var(--accent); line-height: 1.5; }
+  
+  .stat-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .stat-row:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">Inmobiliaria Fram</div>
+    <div class="auth-sub">CRM · Marketing & ATC</div>
+    <div class="auth-desc">Inicia sesión con tu cuenta de Microsoft para acceder al CRM y enviar correos desde Outlook.</div>
+    <button class="ms-btn" onclick="signIn()">
+      <svg width="20" height="20" viewBox="0 0 21 21" fill="none">
+        <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+        <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+        <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+        <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+      </svg>
+      Iniciar sesión con Microsoft
+    </button>
+    <p style="font-size:11px;color:var(--text3);margin-top:16px;">Tus datos se guardan localmente en este navegador.</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-title">Inmobiliaria<br>Fram</div>
+    <div class="logo-sub">CRM Pro</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-label">Principal</div>
+    <div class="nav-item active" onclick="showSection('dashboard',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="showSection('contactos',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+      Contactos
+    </div>
+    <div class="nav-label">Correos</div>
+    <div class="nav-item" onclick="showSection('campana',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+      Nueva campaña
+    </div>
+    <div class="nav-item" onclick="showSection('desempeno',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Desempeño
+    </div>
+    <div class="nav-label">Datos</div>
+    <div class="nav-item" onclick="showSection('importar',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+      Importar CSV
+    </div>
+  </nav>
+  <div class="user-box">
+    <div class="avatar" id="userAvatar">LV</div>
+    <div>
+      <div class="user-name" id="userName">Luis Velazquez</div>
+      <div class="user-role">Marketing & ATC</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">Dashboard</div>
+    <div class="topbar-actions">
+      <span id="authStatus" style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px;">
+        <span class="dot dot-red"></span>Sin conexión Outlook
+      </span>
+      <button class="btn btn-sm btn-primary" onclick="showModal('modalNuevoContacto')">+ Contacto</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div id="s-dashboard" class="section active">
+      <div class="metrics" id="dashMetrics"></div>
+      <div class="section-header">
+        <span class="section-title" style="font-size:14px;">Actividad reciente</span>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head" style="grid-template-columns:36px 1fr 100px 90px 100px;">
+          <div></div><div>Contacto</div><div>Teléfono</div><div>Estado</div><div>Último correo</div>
+        </div>
+        <div id="dashTable"></div>
+      </div>
+    </div>
+
+    <!-- CONTACTOS -->
+    <div id="s-contactos" class="section">
+      <div class="section-header">
+        <span class="section-title">Contactos <span class="chip" id="contactCount">0</span></span>
+        <div style="display:flex;gap:8px;">
+          <input class="form-input" style="width:200px;padding:7px 12px;" placeholder="Buscar..." oninput="filterContacts(this.value)" id="searchInput">
+          <select class="form-select" style="width:120px;" onchange="filterContacts()" id="filterStatus">
+            <option value="">Todos</option>
+            <option value="Lead">Lead</option>
+            <option value="Cliente">Cliente</option>
+            <option value="Cerrado">Cerrado</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head" style="grid-template-columns:36px 1fr 110px 90px 120px;">
+          <div></div><div>Contacto</div><div>Teléfono</div><div>Estado</div><div>Acciones</div>
+        </div>
+        <div id="contactsTable"></div>
+      </div>
+    </div>
+
+    <!-- CAMPAÑA -->
+    <div id="s-campana" class="section">
+      <div class="section-header">
+        <span class="section-title">Nueva campaña</span>
+      </div>
+      <div style="max-width:560px;">
+        <div class="form-group">
+          <label class="form-label">Asunto del correo</label>
+          <input class="form-input" id="emailSubject" placeholder="Ej: Nueva propiedad disponible en tu zona">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Destinatarios</label>
+          <select class="form-select" id="emailRecipients">
+            <option value="all">Todos los contactos</option>
+            <option value="Lead">Solo Leads</option>
+            <option value="Cliente">Solo Clientes</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mensaje</label>
+          <textarea class="form-textarea" id="emailBody" placeholder="Hola {{nombre}},&#10;&#10;Te escribo porque tenemos una propiedad que puede interesarte...&#10;&#10;Saludos,&#10;Luis Velazquez&#10;Inmobiliaria Fram"></textarea>
+        </div>
+        <div class="tag-info" style="margin-bottom:16px;">
+          💡 Usa <strong>{{nombre}}</strong> para personalizar con el nombre de cada contacto. El correo se enviará desde tu Outlook conectado.
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn" onclick="previewEmail()" style="flex:1;">👁 Vista previa</button>
+          <button class="btn btn-primary" onclick="sendCampaign()" style="flex:1;">🚀 Enviar campaña</button>
+        </div>
+        <div id="sendProgress" style="display:none;margin-top:16px;">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:6px;" id="sendProgressText">Enviando...</div>
+          <div class="progress-bar"><div class="progress-fill" id="sendProgressBar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESEMPEÑO -->
+    <div id="s-desempeno" class="section">
+      <div class="section-header">
+        <span class="section-title">Desempeño de correos</span>
+      </div>
+      <div class="metrics" id="emailMetrics"></div>
+      <div class="table-wrap" style="margin-top:20px;">
+        <div class="table-head" style="grid-template-columns:1fr 90px 70px 80px 100px;">
+          <div>Contacto / Asunto</div><div>Enviado</div><div>Abierto</div><div>Respondió</div><div>Estado</div>
+        </div>
+        <div id="emailsTable"></div>
+      </div>
+    </div>
+
+    <!-- IMPORTAR -->
+    <div id="s-importar" class="section">
+      <div class="section-header">
+        <span class="section-title">Importar contactos desde CSV</span>
+      </div>
+      <div style="max-width:480px;">
+        <div class="import-zone" onclick="document.getElementById('csvFile').click()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto;display:block;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <div style="font-weight:600;margin-bottom:6px;">Arrastra tu CSV aquí</div>
+          <div style="font-size:12px;color:var(--text3);">o haz clic para seleccionar</div>
+        </div>
+        <input type="file" id="csvFile" accept=".csv" style="display:none;" onchange="importCSV(this)">
+        <div class="tag-info">
+          <strong>Formato del CSV:</strong><br>
+          <code style="font-size:11px;color:var(--accent);">nombre, correo, telefono, estado, notas</code><br><br>
+          Ejemplo:<br>
+          <code style="font-size:11px;color:var(--text2);">Mario García, mario@gmail.com, 5512345678, Lead, Interesado en Polanco</code>
+        </div>
+        <div id="importResult" style="margin-top:14px;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL NUEVO CONTACTO -->
+<div class="modal-overlay" id="modalNuevoContacto">
+  <div class="modal">
+    <div class="modal-title">Nuevo contacto</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Nombre completo</label><input class="form-input" id="newNombre" placeholder="Mario García"></div>
+      <div class="form-group"><label class="form-label">Correo</label><input class="form-input" id="newCorreo" type="email" placeholder="mario@gmail.com"></div>
+      <div class="form-group"><label class="form-label">Teléfono</label><input class="form-input" id="newTel" placeholder="55 1234 5678"></div>
+      <div class="form-group"><label class="form-label">Estado</label>
+        <select class="form-select" id="newEstado">
+          <option>Lead</option><option>Cliente</option><option>Cerrado</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Notas</label><textarea class="form-textarea" id="newNotas" style="min-height:80px;" placeholder="Interesado en depto 2 rec en Polanco..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modalNuevoContacto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveContact()">Guardar contacto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ENVIO INDIVIDUAL -->
+<div class="modal-overlay" id="modalEnvioIndividual">
+  <div class="modal">
+    <div class="modal-title" id="modalEnvioTitle">Enviar correo</div>
+    <div class="form-group"><label class="form-label">Asunto</label><input class="form-input" id="indSubject" placeholder="Asunto del correo"></div>
+    <div class="form-group"><label class="form-label">Mensaje</label><textarea class="form-textarea" id="indBody" placeholder="Escribe tu mensaje aquí..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modalEnvioIndividual')">Cancelar</button>
+      <button class="btn btn-primary" onclick="sendIndividual()">Enviar correo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PREVIEW -->
+<div class="modal-overlay" id="modalPreview">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-title">Vista previa del correo</div>
+    <div id="previewContent" style="background:var(--surface2);border-radius:8px;padding:16px;font-size:13px;line-height:1.6;white-space:pre-wrap;max-height:300px;overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeModal('modalPreview')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== CONFIG AZURE ====================
+const MSAL_CONFIG = {
+  auth: {
+    clientId: "90e6608b-c3d1-4711-987d-1c7f7143a86d",
+    authority: "https://login.microsoftonline.com/common",
+    redirectUri: window.location.href.split('?')[0]
+  }
+};
+let msalInstance = null;
+const SCOPES = ["Mail.Send", "Mail.ReadWrite", "User.Read"];
+
+// ==================== STATE ====================
+let contacts = JSON.parse(localStorage.getItem('fram_contacts') || '[]');
+let emails = JSON.parse(localStorage.getItem('fram_emails') || '[]');
+let currentContactId = null;
+let accessToken = null;
+let currentUser = null;
+
+// ==================== AUTH ====================
+async function initMsal() {
+  if (msalInstance) return;
+  msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);
+  await msalInstance.initialize();
+}
+
+async function signIn() {
+  try {
+    await initMsal();
+    await msalInstance.handleRedirectPromise();
+    const result = await msalInstance.loginPopup({ scopes: SCOPES });
+    accessToken = result.accessToken;
+    currentUser = result.account;
+    onSignedIn();
+  } catch(e) {
+    showToast('Error al iniciar sesión: ' + e.message, 'error');
+  }
+}
+
+async function getToken() {
+  await initMsal();
+  const accounts = msalInstance.getAllAccounts();
+  if (!accounts.length) return null;
+  try {
+    const result = await msalInstance.acquireTokenSilent({ scopes: SCOPES, account: accounts[0] });
+    return result.accessToken;
+  } catch(e) {
+    const result = await msalInstance.acquireTokenPopup({ scopes: SCOPES });
+    return result.accessToken;
+  }
+}
+
+function onSignedIn() {
+  document.getElementById('authScreen').style.display = 'none';
+  const name = currentUser?.name || 'Luis Velazquez';
+  document.getElementById('userName').textContent = name;
+  document.getElementById('userAvatar').textContent = name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('authStatus').innerHTML = '<span class="dot dot-green"></span>Outlook conectado';
+  renderAll();
+}
+
+// Check if already signed in on load
+window.addEventListener('load', async () => {
+  try {
+    await initMsal();
+    await msalInstance.handleRedirectPromise();
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length > 0) {
+      currentUser = accounts[0];
+      const t = await getToken();
+      accessToken = t;
+      onSignedIn();
+    }
+  } catch(e) { console.log('No session:', e); }
+});
+
+// ==================== SEND EMAIL ====================
+async function sendEmail(to, subject, body) {
+  const token = await getToken();
+  if (!token) throw new Error('No autenticado');
+  const resp = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: {
+        subject,
+        body: { contentType: 'Text', content: body },
+        toRecipients: [{ emailAddress: { address: to } }]
+      }
+    })
+  });
+  if (!resp.ok) throw new Error('Error al enviar: ' + resp.status);
+}
+
+// ==================== CONTACTS ====================
+function saveContacts() { localStorage.setItem('fram_contacts', JSON.stringify(contacts)); }
+function saveEmails() { localStorage.setItem('fram_emails', JSON.stringify(emails)); }
+
+function getInitials(name) {
+  return name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+}
+
+const COLORS = [
+  {bg:'rgba(108,99,255,0.2)',color:'#a78bfa'},
+  {bg:'rgba(67,233,123,0.15)',color:'#43e97b'},
+  {bg:'rgba(255,107,107,0.15)',color:'#ff6b6b'},
+  {bg:'rgba(245,197,66,0.15)',color:'#f5c542'},
+  {bg:'rgba(0,196,255,0.15)',color:'#00c4ff'},
+];
+function getColor(name) { return COLORS[name.charCodeAt(0) % COLORS.length]; }
+
+function badgeHTML(estado) {
+  const map = { Lead:'badge-lead', Cliente:'badge-cliente', Cerrado:'badge-cerrado' };
+  return `<span class="badge ${map[estado]||'badge-lead'}">${estado}</span>`;
+}
+
+function saveContact() {
+  const nombre = document.getElementById('newNombre').value.trim();
+  const correo = document.getElementById('newCorreo').value.trim();
+  if (!nombre || !correo) { showToast('Nombre y correo son obligatorios', 'error'); return; }
+  contacts.push({
+    id: Date.now(), nombre, correo,
+    telefono: document.getElementById('newTel').value.trim(),
+    estado: document.getElementById('newEstado').value,
+    notas: document.getElementById('newNotas').value.trim(),
+    fecha: new Date().toLocaleDateString('es-MX')
+  });
+  saveContacts();
+  closeModal('modalNuevoContacto');
+  document.getElementById('newNombre').value='';
+  document.getElementById('newCorreo').value='';
+  document.getElementById('newTel').value='';
+  document.getElementById('newNotas').value='';
+  renderAll();
+  showToast('✅ Contacto guardado', 'success');
+}
+
+function deleteContact(id) {
+  contacts = contacts.filter(c=>c.id!==id);
+  saveContacts();
+  renderAll();
+  showToast('Contacto eliminado', 'error');
+}
+
+function openIndividual(id) {
+  currentContactId = id;
+  const c = contacts.find(x=>x.id===id);
+  document.getElementById('modalEnvioTitle').textContent = `Enviar correo a ${c.nombre}`;
+  document.getElementById('indSubject').value = '';
+  document.getElementById('indBody').value = `Hola ${c.nombre},\n\n\n\nSaludos,\nLuis Velazquez\nInmobiliaria Fram`;
+  showModal('modalEnvioIndividual');
+}
+
+async function sendIndividual() {
+  const c = contacts.find(x=>x.id===currentContactId);
+  const subject = document.getElementById('indSubject').value.trim();
+  const body = document.getElementById('indBody').value.trim();
+  if (!subject || !body) { showToast('Completa asunto y mensaje', 'error'); return; }
+  try {
+    await sendEmail(c.correo, subject, body);
+    emails.push({ id: Date.now(), contactId: c.id, nombre: c.nombre, correo: c.correo, subject, fecha: new Date().toLocaleDateString('es-MX'), abierto: false, respondio: false });
+    saveEmails();
+    closeModal('modalEnvioIndividual');
+    renderAll();
+    showToast(`✅ Correo enviado a ${c.nombre}`, 'success');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+async function sendCampaign() {
+  const subject = document.getElementById('emailSubject').value.trim();
+  const body = document.getElementById('emailBody').value.trim();
+  const filter = document.getElementById('emailRecipients').value;
+  if (!subject || !body) { showToast('Completa asunto y mensaje', 'error'); return; }
+  const targets = filter === 'all' ? contacts : contacts.filter(c=>c.estado===filter);
+  if (!targets.length) { showToast('No hay contactos para enviar', 'error'); return; }
+  
+  const prog = document.getElementById('sendProgress');
+  const progText = document.getElementById('sendProgressText');
+  const progBar = document.getElementById('sendProgressBar');
+  prog.style.display = 'block';
+  
+  let sent = 0;
+  for (const c of targets) {
+    const personalBody = body.replace(/{{nombre}}/g, c.nombre);
+    try {
+      await sendEmail(c.correo, subject, personalBody);
+      emails.push({ id: Date.now() + sent, contactId: c.id, nombre: c.nombre, correo: c.correo, subject, fecha: new Date().toLocaleDateString('es-MX'), abierto: false, respondio: false });
+      sent++;
+      const pct = Math.round((sent/targets.length)*100);
+      progBar.style.width = pct + '%';
+      progText.textContent = `Enviando... ${sent}/${targets.length}`;
+    } catch(e) { console.error(e); }
+  }
+  saveEmails();
+  prog.style.display = 'none';
+  renderAll();
+  showToast(`✅ Campaña enviada a ${sent} contactos`, 'success');
+}
+
+function previewEmail() {
+  const subject = document.getElementById('emailSubject').value || '(sin asunto)';
+  const body = document.getElementById('emailBody').value || '(sin contenido)';
+  const sample = contacts[0];
+  const preview = body.replace(/{{nombre}}/g, sample ? sample.nombre : 'Contacto');
+  document.getElementById('previewContent').textContent = `Para: ${sample ? sample.correo : 'ejemplo@correo.com'}\nAsunto: ${subject}\n\n${preview}`;
+  showModal('modalPreview');
+}
+
+// ==================== IMPORT CSV ====================
+function importCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.split('\n').filter(l=>l.trim());
+    let imported = 0;
+    lines.forEach(line => {
+      const [nombre, correo, telefono, estado, notas] = line.split(',').map(s=>s.trim());
+      if (nombre && correo) {
+        contacts.push({ id: Date.now() + imported, nombre, correo, telefono: telefono||'', estado: estado||'Lead', notas: notas||'', fecha: new Date().toLocaleDateString('es-MX') });
+        imported++;
+      }
+    });
+    saveContacts();
+    renderAll();
+    document.getElementById('importResult').innerHTML = `<div class="tag-info">✅ Se importaron <strong>${imported} contactos</strong> correctamente.</div>`;
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ==================== RENDER ====================
+function filterContacts(val) { renderContacts(); }
+
+function renderContacts() {
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const status = document.getElementById('filterStatus')?.value || '';
+  const filtered = contacts.filter(c => {
+    const matchSearch = c.nombre.toLowerCase().includes(search) || c.correo.toLowerCase().includes(search);
+    const matchStatus = !status || c.estado === status;
+    return matchSearch && matchStatus;
+  });
+  document.getElementById('contactCount').textContent = filtered.length;
+  const el = document.getElementById('contactsTable');
+  if (!filtered.length) {
+    el.innerHTML = `<div class="empty"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg><p>Sin contactos. ¡Agrega el primero!</p></div>`;
+    return;
+  }
+  el.innerHTML = filtered.map(c => {
+    const col = getColor(c.nombre);
+    return `<div class="table-row" style="grid-template-columns:36px 1fr 110px 90px 120px;">
+      <div class="contact-avatar" style="background:${col.bg};color:${col.color}">${getInitials(c.nombre)}</div>
+      <div><div style="font-weight:500;">${c.nombre}</div><div style="font-size:11px;color:var(--text3);">${c.correo}</div></div>
+      <div style="font-size:12px;color:var(--text2);">${c.telefono||'—'}</div>
+      <div>${badgeHTML(c.estado)}</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm" onclick="openIndividual(${c.id})" title="Enviar correo">✉️</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteContact(${c.id})" title="Eliminar">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDashboard() {
+  const totalContacts = contacts.length;
+  const leads = contacts.filter(c=>c.estado==='Lead').length;
+  const clientes = contacts.filter(c=>c.estado==='Cliente').length;
+  const totalEmails = emails.length;
+  document.getElementById('dashMetrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Contactos</div><div class="metric-val purple">${totalContacts}</div></div>
+    <div class="metric-card"><div class="metric-label">Leads activos</div><div class="metric-val">${leads}</div></div>
+    <div class="metric-card"><div class="metric-label">Clientes</div><div class="metric-val green">${clientes}</div></div>
+    <div class="metric-card"><div class="metric-label">Correos enviados</div><div class="metric-val gold">${totalEmails}</div></div>
+  `;
+  const recent = [...contacts].slice(-5).reverse();
+  const el = document.getElementById('dashTable');
+  if (!recent.length) {
+    el.innerHTML = `<div class="empty"><p>Sin contactos aún. ¡Agrega el primero!</p></div>`;
+    return;
+  }
+  const lastEmail = (id) => {
+    const e = emails.filter(x=>x.contactId===id).pop();
+    return e ? e.fecha : '—';
+  };
+  el.innerHTML = recent.map(c => {
+    const col = getColor(c.nombre);
+    return `<div class="table-row" style="grid-template-columns:36px 1fr 100px 90px 100px;">
+      <div class="contact-avatar" style="background:${col.bg};color:${col.color}">${getInitials(c.nombre)}</div>
+      <div><div style="font-weight:500;">${c.nombre}</div><div style="font-size:11px;color:var(--text3);">${c.correo}</div></div>
+      <div style="font-size:12px;color:var(--text2);">${c.telefono||'—'}</div>
+      <div>${badgeHTML(c.estado)}</div>
+      <div style="font-size:12px;color:var(--text3);">${lastEmail(c.id)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderEmails() {
+  const sent = emails.length;
+  const opened = emails.filter(e=>e.abierto).length;
+  const replied = emails.filter(e=>e.respondio).length;
+  const rate = sent ? Math.round((opened/sent)*100) : 0;
+  document.getElementById('emailMetrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Enviados</div><div class="metric-val gold">${sent}</div></div>
+    <div class="metric-card"><div class="metric-label">Abiertos</div><div class="metric-val green">${opened}</div></div>
+    <div class="metric-card"><div class="metric-label">Tasa apertura</div><div class="metric-val ${rate>50?'green':'red'}">${rate}%</div></div>
+    <div class="metric-card"><div class="metric-label">Respuestas</div><div class="metric-val purple">${replied}</div></div>
+  `;
+  const el = document.getElementById('emailsTable');
+  if (!emails.length) {
+    el.innerHTML = `<div class="empty"><p>Sin correos enviados aún.</p></div>`;
+    return;
+  }
+  el.innerHTML = [...emails].reverse().map(e => `
+    <div class="table-row" style="grid-template-columns:1fr 90px 70px 80px 100px;">
+      <div><div style="font-weight:500;">${e.nombre}</div><div style="font-size:11px;color:var(--text3);">${e.subject}</div></div>
+      <div style="font-size:12px;color:var(--text2);">${e.fecha}</div>
+      <div>${e.abierto ? '✅' : '—'}</div>
+      <div>${e.respondio ? '💬' : '—'}</div>
+      <div><span class="badge ${e.respondio?'badge-respondio':e.abierto?'badge-abierto':'badge-enviado'}">${e.respondio?'Respondió':e.abierto?'Abierto':'Enviado'}</span></div>
+    </div>`).join('');
+}
+
+function renderAll() {
+  renderDashboard();
+  renderContacts();
+  renderEmails();
+}
+
+// ==================== UI HELPERS ====================
+function showSection(id, navEl) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+id).classList.add('active');
+  if (navEl) {
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    navEl.classList.add('active');
+  }
+  const titles = {dashboard:'Dashboard',contactos:'Contactos',campana:'Nueva campaña',desempeno:'Desempeño de correos',importar:'Importar CSV'};
+  document.getElementById('topbarTitle').textContent = titles[id]||'';
+}
+
+function showModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target===m) m.classList.remove('open'); });
+});
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ==================== INIT ====================
+renderAll();
+</script>
+</body>
+</html>

@@ -473,11 +473,7 @@ async function initMsal() {
 async function signIn() {
   try {
     await initMsal();
-    await msalInstance.handleRedirectPromise();
-    const result = await msalInstance.loginPopup({ scopes: SCOPES });
-    accessToken = result.accessToken;
-    currentUser = result.account;
-    onSignedIn();
+    await msalInstance.loginRedirect({ scopes: SCOPES });
   } catch(e) {
     showToast('Error al iniciar sesión: ' + e.message, 'error');
   }
@@ -491,8 +487,7 @@ async function getToken() {
     const result = await msalInstance.acquireTokenSilent({ scopes: SCOPES, account: accounts[0] });
     return result.accessToken;
   } catch(e) {
-    const result = await msalInstance.acquireTokenPopup({ scopes: SCOPES });
-    return result.accessToken;
+    await msalInstance.acquireTokenRedirect({ scopes: SCOPES });
   }
 }
 
@@ -509,7 +504,13 @@ function onSignedIn() {
 window.addEventListener('load', async () => {
   try {
     await initMsal();
-    await msalInstance.handleRedirectPromise();
+    const result = await msalInstance.handleRedirectPromise();
+    if (result) {
+      accessToken = result.accessToken;
+      currentUser = result.account;
+      onSignedIn();
+      return;
+    }
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length > 0) {
       currentUser = accounts[0];

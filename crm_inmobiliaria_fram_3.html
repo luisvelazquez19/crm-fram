@@ -217,7 +217,12 @@
   <div class="auth-card">
     <div class="auth-logo">Inmobiliaria Fram</div>
     <div class="auth-sub">CRM · Marketing & ATC</div>
-    <div class="auth-desc">Inicia sesión con tu cuenta de Microsoft para acceder al CRM y enviar correos desde Outlook.</div>
+    <div class="auth-desc">Inicia sesión con Microsoft y pega tu API Key de Brevo para enviar correos profesionales.</div>
+    <div style="text-align:left;margin-bottom:16px;">
+      <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">API Key de Brevo</label>
+      <input id="brevoKeyInput" type="password" placeholder="xkeysib-..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;">
+      <p style="font-size:10px;color:var(--text3);margin-top:4px;">Encuéntrala en Brevo → Configuración → SMTP y API</p>
+    </div>
     <button class="ms-btn" onclick="signIn()">
       <svg width="20" height="20" viewBox="0 0 21 21" fill="none">
         <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
@@ -472,6 +477,10 @@ async function initMsal() {
 
 async function signIn() {
   try {
+    const key = document.getElementById('brevoKeyInput').value.trim();
+    if (!key) { showToast('Ingresa tu API Key de Brevo', 'error'); return; }
+    BREVO_API_KEY = key;
+    localStorage.setItem('fram_brevo_key', key);
     await initMsal();
     await msalInstance.loginRedirect({ scopes: SCOPES });
   } catch(e) {
@@ -522,7 +531,7 @@ window.addEventListener('load', async () => {
 });
 
 // ==================== SEND EMAIL (BREVO) ====================
-const BREVO_API_KEY = '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';
+let BREVO_API_KEY = localStorage.getItem('fram_brevo_key') || '';
 const BREVO_SENDER = { name: 'Luis Velazquez · Inmobiliaria Fram', email: 'luisvelazquezrojas19@outlook.com' };
 
 async function sendEmail(to, subject, body) {

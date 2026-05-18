@@ -521,22 +521,28 @@ window.addEventListener('load', async () => {
   } catch(e) { console.log('No session:', e); }
 });
 
-// ==================== SEND EMAIL ====================
+// ==================== SEND EMAIL (BREVO) ====================
+const BREVO_API_KEY = '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';
+const BREVO_SENDER = { name: 'Luis Velazquez · Inmobiliaria Fram', email: 'luisvelazquezrojas19@outlook.com' };
+
 async function sendEmail(to, subject, body) {
-  const token = await getToken();
-  if (!token) throw new Error('No autenticado');
-  const resp = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
+  const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    headers: {
+      'api-key': BREVO_API_KEY,
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify({
-      message: {
-        subject,
-        body: { contentType: 'Text', content: body },
-        toRecipients: [{ emailAddress: { address: to } }]
-      }
+      sender: BREVO_SENDER,
+      to: [{ email: to }],
+      subject,
+      textContent: body
     })
   });
-  if (!resp.ok) throw new Error('Error al enviar: ' + resp.status);
+  if (!resp.ok) {
+    const err = await resp.json();
+    throw new Error(err.message || 'Error al enviar');
+  }
 }
 
 // ==================== CONTACTS ====================

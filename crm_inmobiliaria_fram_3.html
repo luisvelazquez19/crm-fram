@@ -332,6 +332,15 @@
       </div>
       <div style="max-width:560px;">
         <div class="form-group">
+          <label class="form-label">📋 Plantillas rápidas</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+            <button class="btn" style="font-size:12px;justify-content:flex-start;" onclick="loadTemplate('bienvenida')">👋 Primer contacto</button>
+            <button class="btn" style="font-size:12px;justify-content:flex-start;" onclick="loadTemplate('info')">🏠 Info de propiedad</button>
+            <button class="btn" style="font-size:12px;justify-content:flex-start;" onclick="loadTemplate('cita')">📅 Agendar cita</button>
+            <button class="btn" style="font-size:12px;justify-content:flex-start;" onclick="loadTemplate('frio')">🔄 Reactivar lead</button>
+          </div>
+        </div>
+        <div class="form-group">
           <label class="form-label">Asunto del correo</label>
           <input class="form-input" id="emailSubject" placeholder="Ej: Nueva propiedad disponible en tu zona">
         </div>
@@ -348,7 +357,7 @@
           <textarea class="form-textarea" id="emailBody" placeholder="Hola {{nombre}},&#10;&#10;Te escribo porque tenemos una propiedad que puede interesarte...&#10;&#10;Saludos,&#10;Luis Velazquez&#10;Inmobiliaria Fram"></textarea>
         </div>
         <div class="tag-info" style="margin-bottom:16px;">
-          💡 Usa <strong>{{nombre}}</strong> para personalizar con el nombre de cada contacto. El correo se enviará desde tu Outlook conectado.
+          💡 Usa <strong>{{nombre}}</strong> para personalizar con el nombre de cada contacto.
         </div>
         <div style="display:flex;gap:10px;">
           <button class="btn" onclick="previewEmail()" style="flex:1;">👁 Vista previa</button>
@@ -534,6 +543,30 @@ window.addEventListener('load', async () => {
 let BREVO_API_KEY = localStorage.getItem('fram_brevo_key') || '';
 const BREVO_SENDER = { name: 'Luis Velazquez · Inmobiliaria Fram', email: 'luisvelazquezrojas19@outlook.com' };
 
+function buildHtmlEmail(body) {
+  const lines = body.split('\n').map(l => l ? `<p style="margin:0 0 8px;">${l}</p>` : '<br>').join('');
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;font-size:14px;color:#222;max-width:600px;margin:0 auto;padding:20px;">
+  <div style="margin-bottom:24px;">${lines}</div>
+  <hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+  <img src="https://luisvelazquez19.github.io/crm-fram/Firma_digital_6_may_2026_JLV.png" alt="Firma Jose Luis Velazquez — Grupo Inmobiliario Fram" style="max-width:480px;width:100%;display:block;">
+</body>
+</html>`;
+}
+
+function buildHtmlEmail(body) {
+  const lines = body.split('\n').map(l => l ? `<p style="margin:0 0 8px;">${l}</p>` : '<br>').join('');
+  return `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;font-size:14px;color:#222;max-width:600px;margin:0 auto;padding:20px;">
+  ${lines}
+  <hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+  <img src="https://luisvelazquez19.github.io/crm-fram/Firma_digital_6_may_2026_JLV.png" alt="Jose Luis Velazquez — Grupo Inmobiliario Fram" style="max-width:480px;width:100%;">
+</body></html>`;
+}
+
 async function sendEmail(to, subject, body) {
   const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
@@ -545,6 +578,7 @@ async function sendEmail(to, subject, body) {
       sender: BREVO_SENDER,
       to: [{ email: to }],
       subject,
+      htmlContent: buildHtmlEmail(body),
       textContent: body
     })
   });
@@ -813,6 +847,111 @@ function showToast(msg, type='success') {
   t.textContent = msg;
   t.className = `toast ${type} show`;
   setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ==================== TEMPLATES ====================
+const TEMPLATES = {
+  bienvenida: {
+    subject: 'Bienvenido a La Floresta — El mejor proyecto en el Norte de la Ciudad',
+    body: `Hola {{nombre}},
+
+Gracias por tu interés en La Floresta. Me da mucho gusto contactarte.
+
+Somos un desarrollo inmobiliario privado y seguro ubicado en Bosques del Lago, Cuautitlán Izcalli, con casas desde $5.5 MDP. Contamos con modernos espacios, áreas verdes y la mejor distribución arquitectónica para que tú y tu familia vivan en el lugar que se merecen.
+
+Tenemos disponibles distintos modelos de casa adaptados a diferentes necesidades y presupuestos. Me encantaría contarte más detalles y resolver cualquier duda que tengas.
+
+¿Te gustaría que te compartiera información más detallada o agendar una visita sin compromiso?
+
+Saludos,
+Luis Velazquez
+Marketing & ATC — Inmobiliaria Fram
+T. 55 8854 4458
+la-floresta.com.mx`
+  },
+  info: {
+    subject: 'Información de La Floresta — Casas en Cuautitlán Izcalli desde $5.5 MDP',
+    body: `Hola {{nombre}},
+
+Con gusto te comparto la información de nuestro desarrollo La Floresta:
+
+📍 UBICACIÓN
+Bosques del Lago, Cuautitlán Izcalli, Estado de México.
+
+🏠 MODELOS DISPONIBLES
+
+• NOGAL TT / NOGAL S — 158 m² de construcción
+  - 3 recámaras (principal con vestidor, baño y terraza)
+  - Estudio, sala-comedor, jardín
+  - 2 cajones de estacionamiento
+  - Medio baño en planta baja
+
+• PALMA TS / PALMA TT — 160 m²  de construcción
+  - 3 recámaras (principal con vestidor, baño y terraza)
+  - Estudio, sala-comedor, jardín
+  - 2 cajones de estacionamiento
+  - Cancelería de cristal templado en baños
+
+💰 PRECIOS desde $5.5 MDP
+Opciones de pago: recursos propios, crédito hipotecario e Infonavit.
+
+Puedes ver más detalles y recorrer la maqueta virtual en: www.la-floresta.com.mx
+
+¿Te gustaría agendar una visita para conocer el desarrollo en persona?
+
+Saludos,
+Luis Velazquez
+Marketing & ATC — Inmobiliaria Fram
+T. 55 8854 4458`
+  },
+  cita: {
+    subject: 'Tu visita a La Floresta está lista — Te esperamos',
+    body: `Hola {{nombre}},
+
+Qué gusto que quieras conocer La Floresta en persona. Estoy seguro de que cuando lo veas vas a enamorarte del proyecto.
+
+Para coordinar tu visita, nuestro equipo de ventas está disponible de lunes a sábado. Solo dime qué día y hora te acomoda mejor y yo me encargo de agendarte con uno de nuestros asesores.
+
+Durante la visita podrás:
+✅ Recorrer el desarrollo y ver las casas muestra
+✅ Conocer todos los modelos disponibles
+✅ Resolver dudas sobre financiamiento y proceso de compra
+✅ Hablar directamente con un asesor especializado
+
+¿Qué día te queda bien? Te esperamos en Bosques del Lago, Cuautitlán Izcalli.
+
+Saludos,
+Luis Velazquez
+Marketing & ATC — Inmobiliaria Fram
+T. 55 8854 4458
+la-floresta.com.mx`
+  },
+  frio: {
+    subject: 'Aún tienes oportunidad en La Floresta — Disponibilidad limitada',
+    body: `Hola {{nombre}},
+
+Hace unos días te compartí información sobre La Floresta y quiero asegurarme de que no te quedes sin tu oportunidad.
+
+Te escribo porque la disponibilidad de casas es limitada y no queremos que pierdas la tuya. Seguimos teniendo modelos disponibles desde $5.5 MDP con opciones de crédito hipotecario e Infonavit.
+
+Si tienes alguna duda o algo que no te quedó claro, con gusto te la resuelvo. También podemos agendar una visita sin ningún compromiso para que conozcas el desarrollo en persona.
+
+¿Qué te parece si hablamos esta semana?
+
+Saludos,
+Luis Velazquez
+Marketing & ATC — Inmobiliaria Fram
+T. 55 8854 4458
+la-floresta.com.mx`
+  }
+};
+
+function loadTemplate(type) {
+  const t = TEMPLATES[type];
+  if (!t) return;
+  document.getElementById('emailSubject').value = t.subject;
+  document.getElementById('emailBody').value = t.body;
+  showToast('✅ Plantilla cargada', 'success');
 }
 
 // ==================== INIT ====================

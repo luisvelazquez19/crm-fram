@@ -384,6 +384,12 @@
           </select>
         </div>
         <div class="form-group"><label class="form-label">Mensaje</label><textarea class="form-textarea" id="emailBody" placeholder="Hola {{nombre}},"></textarea></div>
+        <div class="form-group">
+          <label class="form-label">📎 Adjuntos (PDF, imágenes)</label>
+          <input type="file" id="files1" multiple accept=".pdf,.jpg,.jpeg,.png,.gif" style="display:none;" onchange="updateFileList('files1','fileList1')">
+          <button class="btn" style="width:100%;justify-content:center;" onclick="document.getElementById('files1').click()">📎 Seleccionar archivos</button>
+          <div id="fileList1" style="margin-top:8px;font-size:12px;color:var(--text2);"></div>
+        </div>
         <div class="tag-info" style="margin-bottom:16px;">💡 Usa <strong>{{nombre}}</strong> para personalizar.</div>
         <div style="display:flex;gap:10px;">
           <button class="btn" onclick="previewEmail()" style="flex:1;">👁 Vista previa</button>
@@ -428,6 +434,12 @@
           </select>
         </div>
         <div class="form-group"><label class="form-label">Mensaje</label><textarea class="form-textarea" id="emailBody2" placeholder="Hola {{nombre}},"></textarea></div>
+        <div class="form-group">
+          <label class="form-label">📎 Adjuntos (PDF, imágenes)</label>
+          <input type="file" id="files2" multiple accept=".pdf,.jpg,.jpeg,.png,.gif" style="display:none;" onchange="updateFileList('files2','fileList2')">
+          <button class="btn" style="width:100%;justify-content:center;" onclick="document.getElementById('files2').click()">📎 Seleccionar archivos</button>
+          <div id="fileList2" style="margin-top:8px;font-size:12px;color:var(--text2);"></div>
+        </div>
         <div class="tag-info" style="margin-bottom:16px;">💡 Usa <strong>{{nombre}}</strong> para personalizar.</div>
         <div style="display:flex;gap:10px;">
           <button class="btn" onclick="previewEmail2()" style="flex:1;">👁 Vista previa</button>
@@ -472,6 +484,12 @@
           </select>
         </div>
         <div class="form-group"><label class="form-label">Mensaje</label><textarea class="form-textarea" id="emailBody3" placeholder="Hola {{nombre}},"></textarea></div>
+        <div class="form-group">
+          <label class="form-label">📎 Adjuntos (PDF, imágenes)</label>
+          <input type="file" id="files3" multiple accept=".pdf,.jpg,.jpeg,.png,.gif" style="display:none;" onchange="updateFileList('files3','fileList3')">
+          <button class="btn" style="width:100%;justify-content:center;" onclick="document.getElementById('files3').click()">📎 Seleccionar archivos</button>
+          <div id="fileList3" style="margin-top:8px;font-size:12px;color:var(--text2);"></div>
+        </div>
         <div class="tag-info" style="margin-bottom:16px;">💡 Usa <strong>{{nombre}}</strong> para personalizar.</div>
         <div style="display:flex;gap:10px;">
           <button class="btn" onclick="previewEmail3()" style="flex:1;">👁 Vista previa</button>
@@ -508,6 +526,12 @@
           </select>
         </div>
         <div class="form-group"><label class="form-label">Mensaje</label><textarea class="form-textarea" id="emailBody" placeholder="Hola {{nombre}},&#10;&#10;Te escribo porque tenemos una propiedad que puede interesarte...&#10;&#10;Saludos,&#10;Luis Velazquez&#10;Inmobiliaria Fram"></textarea></div>
+        <div class="form-group">
+          <label class="form-label">📎 Adjuntos (PDF, imágenes)</label>
+          <input type="file" id="files0" multiple accept=".pdf,.jpg,.jpeg,.png,.gif" style="display:none;" onchange="updateFileList('files0','fileList0')">
+          <button class="btn" style="width:100%;justify-content:center;" onclick="document.getElementById('files0').click()">📎 Seleccionar archivos</button>
+          <div id="fileList0" style="margin-top:8px;font-size:12px;color:var(--text2);"></div>
+        </div>
         <div class="tag-info" style="margin-bottom:16px;">💡 Usa <strong>{{nombre}}</strong> para personalizar con el nombre de cada contacto.</div>
         <div style="display:flex;gap:10px;">
           <button class="btn" onclick="previewEmail()" style="flex:1;">👁 Vista previa</button>
@@ -587,6 +611,12 @@
     <div class="modal-title" id="modalEnvioTitle">Enviar correo</div>
     <div class="form-group"><label class="form-label">Asunto</label><input class="form-input" id="indSubject" placeholder="Asunto del correo"></div>
     <div class="form-group"><label class="form-label">Mensaje</label><textarea class="form-textarea" id="indBody" placeholder="Escribe tu mensaje aquí..."></textarea></div>
+    <div class="form-group">
+      <label class="form-label">📎 Adjuntos (PDF, imágenes)</label>
+      <input type="file" id="indFiles" multiple accept=".pdf,.jpg,.jpeg,.png,.gif" style="display:none;" onchange="updateFileList('indFiles','indFileList')">
+      <button class="btn" style="width:100%;justify-content:center;" onclick="document.getElementById('indFiles').click()">📎 Seleccionar archivos</button>
+      <div id="indFileList" style="margin-top:8px;font-size:12px;color:var(--text2);"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modalEnvioIndividual')">Cancelar</button>
       <button class="btn btn-primary" onclick="sendIndividual()">Enviar correo</button>
@@ -717,20 +747,35 @@ function buildHtmlEmail(body) {
 </body></html>`;
 }
 
-async function sendEmail(to, subject, body) {
+let currentAttachments = []; // Global attachments array
+
+async function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function sendEmail(to, subject, body, attachments = []) {
+  const payload = {
+    sender: BREVO_SENDER,
+    to: [{ email: to }],
+    subject,
+    htmlContent: buildHtmlEmail(body),
+    textContent: body
+  };
+  if (attachments.length > 0) {
+    payload.attachment = await Promise.all(attachments.map(async f => ({
+      name: f.name,
+      content: await fileToBase64(f)
+    })));
+  }
   const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
-    headers: {
-      'api-key': BREVO_API_KEY,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      sender: BREVO_SENDER,
-      to: [{ email: to }],
-      subject,
-      htmlContent: buildHtmlEmail(body),
-      textContent: body
-    })
+    headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
   });
   if (!resp.ok) {
     const err = await resp.json();
@@ -814,7 +859,7 @@ async function sendIndividual() {
   }
 }
 
-async function sendCampaign() {
+async function sendCampaign(filesInputId='files1') {
   const subject = document.getElementById('emailSubject').value.trim();
   const body = document.getElementById('emailBody').value.trim();
   const filter = document.getElementById('emailRecipients').value;
@@ -1450,6 +1495,24 @@ Asunto: ${subject}
 
 ${preview}`;
   showModal('modalPreview');
+}
+
+// File list helper
+function updateFileList(inputId, listId) {
+  const files = document.getElementById(inputId).files;
+  const list = document.getElementById(listId);
+  if (!files.length) { list.innerHTML = ''; return; }
+  list.innerHTML = Array.from(files).map(f =>
+    `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:0.5px solid var(--border);">
+      <span>📄</span><span>${f.name}</span>
+      <span style="color:var(--text3);margin-left:auto;">${(f.size/1024).toFixed(0)} KB</span>
+    </div>`
+  ).join('');
+}
+
+function getFiles(inputId) {
+  const el = document.getElementById(inputId);
+  return el ? Array.from(el.files) : [];
 }
 
 // ==================== INIT ====================

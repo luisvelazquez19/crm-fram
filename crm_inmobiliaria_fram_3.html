@@ -384,12 +384,7 @@
           </select>
         </div>
         <div class="form-group"><label class="form-label">Mensaje</label><textarea class="form-textarea" id="emailBody" placeholder="Hola {{nombre}},"></textarea></div>
-        <div class="form-group">
-          <label class="form-label">📎 Adjuntos (PDF, imágenes)</label>
-          <input type="file" id="files1" multiple accept=".pdf,.jpg,.jpeg,.png,.gif" style="display:none;" onchange="updateFileList('files1','fileList1')">
-          <button class="btn" style="width:100%;justify-content:center;" onclick="document.getElementById('files1').click()">📎 Seleccionar archivos</button>
-          <div id="fileList1" style="margin-top:8px;font-size:12px;color:var(--text2);"></div>
-        </div>
+
         <div class="tag-info" style="margin-bottom:16px;">💡 Usa <strong>{{nombre}}</strong> para personalizar.</div>
         <div style="display:flex;gap:10px;">
           <button class="btn" onclick="previewEmail()" style="flex:1;">👁 Vista previa</button>
@@ -434,12 +429,7 @@
           </select>
         </div>
         <div class="form-group"><label class="form-label">Mensaje</label><textarea class="form-textarea" id="emailBody2" placeholder="Hola {{nombre}},"></textarea></div>
-        <div class="form-group">
-          <label class="form-label">📎 Adjuntos (PDF, imágenes)</label>
-          <input type="file" id="files2" multiple accept=".pdf,.jpg,.jpeg,.png,.gif" style="display:none;" onchange="updateFileList('files2','fileList2')">
-          <button class="btn" style="width:100%;justify-content:center;" onclick="document.getElementById('files2').click()">📎 Seleccionar archivos</button>
-          <div id="fileList2" style="margin-top:8px;font-size:12px;color:var(--text2);"></div>
-        </div>
+
         <div class="tag-info" style="margin-bottom:16px;">💡 Usa <strong>{{nombre}}</strong> para personalizar.</div>
         <div style="display:flex;gap:10px;">
           <button class="btn" onclick="previewEmail2()" style="flex:1;">👁 Vista previa</button>
@@ -484,12 +474,7 @@
           </select>
         </div>
         <div class="form-group"><label class="form-label">Mensaje</label><textarea class="form-textarea" id="emailBody3" placeholder="Hola {{nombre}},"></textarea></div>
-        <div class="form-group">
-          <label class="form-label">📎 Adjuntos (PDF, imágenes)</label>
-          <input type="file" id="files3" multiple accept=".pdf,.jpg,.jpeg,.png,.gif" style="display:none;" onchange="updateFileList('files3','fileList3')">
-          <button class="btn" style="width:100%;justify-content:center;" onclick="document.getElementById('files3').click()">📎 Seleccionar archivos</button>
-          <div id="fileList3" style="margin-top:8px;font-size:12px;color:var(--text2);"></div>
-        </div>
+
         <div class="tag-info" style="margin-bottom:16px;">💡 Usa <strong>{{nombre}}</strong> para personalizar.</div>
         <div style="display:flex;gap:10px;">
           <button class="btn" onclick="previewEmail3()" style="flex:1;">👁 Vista previa</button>
@@ -526,12 +511,7 @@
           </select>
         </div>
         <div class="form-group"><label class="form-label">Mensaje</label><textarea class="form-textarea" id="emailBody" placeholder="Hola {{nombre}},&#10;&#10;Te escribo porque tenemos una propiedad que puede interesarte...&#10;&#10;Saludos,&#10;Luis Velazquez&#10;Inmobiliaria Fram"></textarea></div>
-        <div class="form-group">
-          <label class="form-label">📎 Adjuntos (PDF, imágenes)</label>
-          <input type="file" id="files0" multiple accept=".pdf,.jpg,.jpeg,.png,.gif" style="display:none;" onchange="updateFileList('files0','fileList0')">
-          <button class="btn" style="width:100%;justify-content:center;" onclick="document.getElementById('files0').click()">📎 Seleccionar archivos</button>
-          <div id="fileList0" style="margin-top:8px;font-size:12px;color:var(--text2);"></div>
-        </div>
+
         <div class="tag-info" style="margin-bottom:16px;">💡 Usa <strong>{{nombre}}</strong> para personalizar con el nombre de cada contacto.</div>
         <div style="display:flex;gap:10px;">
           <button class="btn" onclick="previewEmail()" style="flex:1;">👁 Vista previa</button>
@@ -611,12 +591,7 @@
     <div class="modal-title" id="modalEnvioTitle">Enviar correo</div>
     <div class="form-group"><label class="form-label">Asunto</label><input class="form-input" id="indSubject" placeholder="Asunto del correo"></div>
     <div class="form-group"><label class="form-label">Mensaje</label><textarea class="form-textarea" id="indBody" placeholder="Escribe tu mensaje aquí..."></textarea></div>
-    <div class="form-group">
-      <label class="form-label">📎 Adjuntos (PDF, imágenes)</label>
-      <input type="file" id="indFiles" multiple accept=".pdf,.jpg,.jpeg,.png,.gif" style="display:none;" onchange="updateFileList('indFiles','indFileList')">
-      <button class="btn" style="width:100%;justify-content:center;" onclick="document.getElementById('indFiles').click()">📎 Seleccionar archivos</button>
-      <div id="indFileList" style="margin-top:8px;font-size:12px;color:var(--text2);"></div>
-    </div>
+
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modalEnvioIndividual')">Cancelar</button>
       <button class="btn btn-primary" onclick="sendIndividual()">Enviar correo</button>
@@ -722,6 +697,9 @@ window.addEventListener('load', async () => {
 // ==================== SEND EMAIL (BREVO) ====================
 let BREVO_API_KEY = localStorage.getItem('fram_brevo_key') || '';
 const BREVO_SENDER = { name: 'Luis Velazquez · Inmobiliaria Fram', email: 'luisvelazquezrojas19@outlook.com' };
+const PDF_FLORESTA = 'https://luisvelazquez19.github.io/crm-fram/Presentacion%20La%20Floresta%20JLV.pdf';
+const PDF_VIVACE = 'https://luisvelazquez19.github.io/crm-fram/Vivace.pdf';
+const PDF_LAGO = null;
 
 function buildHtmlEmail(body) {
   const lines = body.split('\n').map(l => l ? `<p style="margin:0 0 8px;">${l}</p>` : '<br>').join('');
@@ -731,23 +709,40 @@ function buildHtmlEmail(body) {
 <body style="font-family:Arial,sans-serif;font-size:14px;color:#222;max-width:600px;margin:0 auto;padding:20px;">
   <div style="margin-bottom:24px;">${lines}</div>
   <hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
-  <img src="https://luisvelazquez19.github.io/crm-fram/Firma_digital_6_may_2026_JLV.png" alt="Firma Jose Luis Velazquez — Grupo Inmobiliario Fram" style="max-width:480px;width:100%;display:block;">
+  <img src="https://luisvelazquez19.github.io/crm-fram/Firma%20digital%206%20may%202026%20JLV.png" alt="Firma Jose Luis Velazquez — Grupo Inmobiliario Fram" style="max-width:480px;width:100%;display:block;">
 </body>
 </html>`;
 }
 
-function buildHtmlEmail(body) {
+function buildHtmlEmail(body, downloadBtn = '') {
   const lines = body.split('\n').map(l => l ? `<p style="margin:0 0 8px;">${l}</p>` : '<br>').join('');
   return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="font-family:Arial,sans-serif;font-size:14px;color:#222;max-width:600px;margin:0 auto;padding:20px;">
   ${lines}
+  ${downloadBtn}
   <hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
-  <img src="https://luisvelazquez19.github.io/crm-fram/Firma_digital_6_may_2026_JLV.png" alt="Jose Luis Velazquez — Grupo Inmobiliario Fram" style="max-width:480px;width:100%;">
+  <img src="https://luisvelazquez19.github.io/crm-fram/Firma%20digital%206%20may%202026%20JLV.png" alt="Jose Luis Velazquez — Grupo Inmobiliario Fram" style="max-width:480px;width:100%;">
 </body></html>`;
 }
 
+const PDF_URLS = {
+  floresta: 'https://luisvelazquez19.github.io/crm-fram/Presentacion%20La%20Floresta%20JLV.pdf',
+  vivace: 'https://luisvelazquez19.github.io/crm-fram/Vivace.pdf',
+  lago: ''
+};
+
+function buildDownloadBtn(url, label) {
+  if (!url) return '';
+  return `<div style="margin:20px 0;text-align:center;">
+    <a href="${url}" target="_blank" style="display:inline-block;background:#1B4F8A;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">
+      📄 ${label}
+    </a>
+  </div>`;
+}
+
 let currentAttachments = []; // Global attachments array
+let currentDownloadBtn = ''; // Download button HTML
 
 async function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -758,12 +753,12 @@ async function fileToBase64(file) {
   });
 }
 
-async function sendEmail(to, subject, body, attachments = []) {
+async function sendEmail(to, subject, body, attachments = [], pdfUrl = null) {
   const payload = {
     sender: BREVO_SENDER,
     to: [{ email: to }],
     subject,
-    htmlContent: buildHtmlEmail(body),
+    htmlContent: buildHtmlEmail(body, pdfUrl),
     textContent: body
   };
   if (attachments.length > 0) {
@@ -859,7 +854,23 @@ async function sendIndividual() {
   }
 }
 
-async function sendCampaign(filesInputId='files1') {
+async function sendCampaign(filesInputId='files1', pdfUrl=null) {
+  // Auto-detect PDF based on active section
+  const active = document.querySelector('.section.active');
+  if (!pdfUrl && active) {
+    if (active.id === 's-floresta') pdfUrl = PDF_FLORESTA;
+    else if (active.id === 's-vivace') pdfUrl = PDF_VIVACE;
+    else if (active.id === 's-realdellago') pdfUrl = PDF_LAGO;
+  }
+  // Set download button based on active section
+  const active = document.querySelector('.section.active');
+  if (active && active.id === 's-floresta') {
+    currentDownloadBtn = buildDownloadBtn(PDF_URLS.floresta, 'Descargar Presentación La Floresta');
+  } else if (active && active.id === 's-vivace') {
+    currentDownloadBtn = buildDownloadBtn(PDF_URLS.vivace, 'Descargar Presentación Vivace');
+  } else {
+    currentDownloadBtn = '';
+  }
   const subject = document.getElementById('emailSubject').value.trim();
   const body = document.getElementById('emailBody').value.trim();
   const filter = document.getElementById('emailRecipients').value;
@@ -876,7 +887,7 @@ async function sendCampaign(filesInputId='files1') {
   for (const c of targets) {
     const personalBody = body.replace(/{{nombre}}/g, c.nombre);
     try {
-      await sendEmail(c.correo, subject, personalBody);
+      await sendEmail(c.correo, subject, personalBody, [], pdfUrl);
       emails.push({ id: Date.now() + sent, contactId: c.id, nombre: c.nombre, correo: c.correo, subject, fecha: new Date().toLocaleDateString('es-MX'), abierto: false, respondio: false });
       sent++;
       const pct = Math.round((sent/targets.length)*100);
@@ -1154,6 +1165,9 @@ Contamos con 4 modelos de hasta 160 m², 3 recámaras, jardín propio y 2 cajone
 
 ¿Te gustaría que te compartiera los modelos disponibles o agendamos una visita sin compromiso?
 
+📄 PRESENTACIÓN COMPLETA:
+https://luisvelazquez19.github.io/crm-fram/Presentacion%20La%20Floresta%20JLV.pdf
+
 Saludos,
 Luis Velazquez
 Marketing & ATC — Inmobiliaria Fram
@@ -1183,6 +1197,9 @@ Bosques del Lago, Cuautitlán Izcalli, Estado de México.
 💳 Infonavit, Cofinavit y crédito hipotecario
 
 👉 la-floresta.com.mx
+
+📄 PRESENTACIÓN COMPLETA:
+https://luisvelazquez19.github.io/crm-fram/Presentacion%20La%20Floresta%20JLV.pdf
 
 ¿Agendamos una visita para que lo conozcas en persona?
 
@@ -1317,6 +1334,9 @@ Contamos con casas de 198-208 m² y departamentos desde 121 m². Triple segurida
 
 ¿Te gustaría que te compartiera los modelos disponibles o agendamos una visita?
 
+📄 PRESENTACIÓN COMPLETA:
+https://luisvelazquez19.github.io/crm-fram/Vivace.pdf
+
 Saludos,
 Luis Velazquez
 Marketing & ATC — Inmobiliaria Fram
@@ -1349,6 +1369,9 @@ Av. Granjas 407, Col. Capistrano, Atizapán de Zaragoza (entrada por UNITEC)
 💳 Crédito hipotecario
 
 👉 vivace.com.mx
+
+📄 PRESENTACIÓN COMPLETA:
+https://luisvelazquez19.github.io/crm-fram/Vivace.pdf
 
 ¿Agendamos tu visita?
 
@@ -1402,6 +1425,8 @@ Object.assign(TEMPLATES, EXTRA_TEMPLATES);
 
 // Campaign functions for Real del Lago
 async function sendCampaign2() {
+  const pdfUrl = PDF_LAGO;
+  currentDownloadBtn = buildDownloadBtn(PDF_URLS.lago, '');
   const subject = document.getElementById('emailSubject2').value.trim();
   const body = document.getElementById('emailBody2').value.trim();
   const filter = document.getElementById('emailRecipients2').value;
@@ -1416,7 +1441,7 @@ async function sendCampaign2() {
   for (const c of targets) {
     const personalBody = body.replace(/{{nombre}}/g, c.nombre);
     try {
-      await sendEmail(c.correo, subject, personalBody);
+      await sendEmail(c.correo, subject, personalBody, [], pdfUrl);
       emails.push({ id: Date.now() + sent, contactId: c.id, nombre: c.nombre, correo: c.correo, subject, fecha: new Date().toLocaleDateString('es-MX'), abierto: false, respondio: false });
       sent++;
       const pct = Math.round((sent/targets.length)*100);
@@ -1447,6 +1472,8 @@ function loadTemplate(type) {
 }
 
 async function sendCampaign3() {
+  const pdfUrl = PDF_VIVACE;
+  currentDownloadBtn = buildDownloadBtn(PDF_URLS.vivace, 'Descargar Presentación Vivace');
   const subject = document.getElementById('emailSubject3').value.trim();
   const body = document.getElementById('emailBody3').value.trim();
   const filter = document.getElementById('emailRecipients3').value;
@@ -1461,7 +1488,7 @@ async function sendCampaign3() {
   for (const c of targets) {
     const personalBody = body.replace(/{{nombre}}/g, c.nombre);
     try {
-      await sendEmail(c.correo, subject, personalBody);
+      await sendEmail(c.correo, subject, personalBody, [], pdfUrl);
       emails.push({ id: Date.now() + sent, contactId: c.id, nombre: c.nombre, correo: c.correo, subject, fecha: new Date().toLocaleDateString('es-MX'), abierto: false, respondio: false });
       sent++;
       const pct = Math.round((sent/targets.length)*100);

@@ -862,15 +862,6 @@ async function sendCampaign(filesInputId='files1', pdfUrl=null) {
     else if (active.id === 's-vivace') pdfUrl = PDF_VIVACE;
     else if (active.id === 's-realdellago') pdfUrl = PDF_LAGO;
   }
-  // Set download button based on active section
-  const active = document.querySelector('.section.active');
-  if (active && active.id === 's-floresta') {
-    currentDownloadBtn = buildDownloadBtn(PDF_URLS.floresta, 'Descargar Presentación La Floresta');
-  } else if (active && active.id === 's-vivace') {
-    currentDownloadBtn = buildDownloadBtn(PDF_URLS.vivace, 'Descargar Presentación Vivace');
-  } else {
-    currentDownloadBtn = '';
-  }
   const subject = document.getElementById('emailSubject').value.trim();
   const body = document.getElementById('emailBody').value.trim();
   const filter = document.getElementById('emailRecipients').value;
